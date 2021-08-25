@@ -20,5 +20,6 @@ def read_item(barcode: str):
 
     impact_estimation_result = estimate_impacts(
             product=product,
+            distributions_as_result=True,
             impact_names=impact_categories)
     return impact_estimation_result
