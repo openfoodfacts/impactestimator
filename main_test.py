@@ -159,6 +159,7 @@ class TestEstimation(unittest.TestCase):
         impact_estimation_result = estimate_impacts(
                 product=testCase["prod"],
                 distributions_as_result=True,
+                total_mass_used=100,
                 impact_names=impact_categories)
 
         best_mixture_error_sum = 0.0
