@@ -3,6 +3,7 @@ import unittest
 from impacts_estimation.impacts_estimation import estimate_impacts
 import numpy as np
 import json
+import copy
 
 
 class TestEstimation(unittest.TestCase):
@@ -51,32 +52,6 @@ class TestEstimation(unittest.TestCase):
                         },
                     },
                     "truth": {
-                        "ingredients": [
-                            {
-                                "mass": 37.8,
-                                "id": "en:condensed-milk",
-                                "percent": 37.8,
-                                "rank": 1
-                            },
-                            {
-                                "mass": 28.7,
-                                "id": "en:dark-chocolate",
-                                "percent": 28.7,
-                                "rank": 2
-                            },
-                            {
-                                "mass": 18.8,
-                                "id": "en:butter",
-                                "percent": 18.8,
-                                "rank": 3
-                            },
-                            {
-                                "mass": 14.7,
-                                "id": "en:beans",
-                                "percent": 14.7,
-                                "rank": 4
-                            }
-                        ],
                         "impacts": {
                             "ef": 0.61477708,
                             "co2": 8.7770996,
@@ -125,32 +100,6 @@ class TestEstimation(unittest.TestCase):
                         },
                     },
                     "truth": {
-                        "ingredients": [
-                            {
-                                "mass": 72.8,
-                                "id": "en:olive-oil",
-                                "percent": 73.00441235459286,
-                                "rank": 1
-                            },
-                            {
-                                "mass": 10.8,
-                                "id": "en:garlic",
-                                "percent": 10.830324909747292,
-                                "rank": 2
-                            },
-                            {
-                                "mass": 8.290000000000001,
-                                "id": "en:egg-yolk",
-                                "percent": 8.313277176093061,
-                                "rank": 3
-                            },
-                            {
-                                "mass": 7.829999999999999,
-                                "id": "en:lemon-juice",
-                                "percent": 7.851985559566786,
-                                "rank": 4
-                            },
-                        ],
                         "impacts": {
                             "ef": 0.4800103,
                             "co2": 1.1042559,
@@ -159,43 +108,56 @@ class TestEstimation(unittest.TestCase):
                 },
         ]:
             for use_percentages in [True, False]:
-                true_ingredients = {}
-                for ingredient in test_case["truth"]["ingredients"]:
-                    true_ingredients[ingredient["id"]] = ingredient["percent"]
+                for break_first_ingredient in [True, False]:
+                    test_case_copy = copy.deepcopy(test_case)
+                    true_ingredients = {}
+                    for ingredient in test_case_copy["prod"]["ingredients"]:
+                        true_ingredients[ingredient["id"]] = ingredient["percent"]
 
-                if not use_percentages:
-                    for ingredient in test_case["prod"]["ingredients"]:
-                        del ingredient["percent"]
+                    for idx, ingredient in enumerate(test_case_copy["prod"]["ingredients"]):
+                        if break_first_ingredient and idx == 0:
+                            ingredient["id"] = "en:unicorn-droppings"
+                        if not use_percentages:
+                            del ingredient["percent"]
 
-                impact_categories = ['EF single score',
-                        'Climate change']
-                impact_estimation_result = estimate_impacts(
-                        product=test_case["prod"],
-                        distributions_as_result=True,
-                        total_mass_used=100,
-                        impact_names=impact_categories)
+                    impact_categories = ['EF single score',
+                            'Climate change']
+                    impact_estimation_result = estimate_impacts(
+                            seed=1,
+                            product=test_case_copy["prod"],
+                            distributions_as_result=True,
+                            total_mass_used=100,
+                            impact_names=impact_categories)
 
-                best_mixture_error_sum = 0.0
-                best_mixture_idx = np.argmax(impact_estimation_result["confidence_score_distribution"])
-                for ingredient, percentage in impact_estimation_result["recipes"][best_mixture_idx].items():
-                    error = percentage
-                    if ingredient in true_ingredients:
-                        error = percentage - true_ingredients[ingredient]
-                    best_mixture_error_sum = error * error
-                best_mixture_l2_error = best_mixture_error_sum ** 0.5
-                # 10 * since impact_estimation_result is for 100g while the AgriBalyse impacts are for 1000g.
-                estimated_ef = 10 * impact_estimation_result['impact_distributions']['EF single score'][best_mixture_idx]
-                estimated_co2 = 10 * impact_estimation_result['impact_distributions']['Climate change'][best_mixture_idx]
-                ef_error = abs(estimated_ef - test_case['truth']['impacts']['ef']) / test_case['truth']['impacts']['ef']
-                co2_error = abs(estimated_co2 - test_case['truth']['impacts']['co2']) / test_case['truth']['impacts']['co2']
-                if use_percentages:
-                    self.assertLess(best_mixture_l2_error, 0.01)
-                    self.assertLess(ef_error, 0.1)
-                    self.assertLess(co2_error, 0.1)
-                else:
-                    self.assertLess(best_mixture_l2_error, 50.0)
-                    self.assertLess(ef_error, 0.5)
-                    self.assertLess(co2_error, 0.5)
+                    best_mixture_error_sum = 0.0
+                    best_mixture_idx = np.argmax(impact_estimation_result["confidence_score_distribution"])
+                    for ingredient, percentage in impact_estimation_result["recipes"][best_mixture_idx].items():
+                        error = percentage
+                        if ingredient in true_ingredients:
+                            error = percentage - true_ingredients[ingredient]
+                        best_mixture_error_sum = error * error
+                    best_mixture_l2_error = best_mixture_error_sum ** 0.5
+                    # 10 * since impact_estimation_result is for 100g while the AgriBalyse impacts are for 1000g.
+                    estimated_ef = 10 * impact_estimation_result['impact_distributions']['EF single score'][best_mixture_idx]
+                    estimated_co2 = 10 * impact_estimation_result['impact_distributions']['Climate change'][best_mixture_idx]
+                    ef_error = abs(estimated_ef - test_case_copy['truth']['impacts']['ef']) / test_case_copy['truth']['impacts']['ef']
+                    co2_error = abs(estimated_co2 - test_case_copy['truth']['impacts']['co2']) / test_case_copy['truth']['impacts']['co2']
+                    if use_percentages and not break_first_ingredient:
+                        self.assertLess(best_mixture_l2_error, 0.01)
+                        self.assertLess(ef_error, 0.1)
+                        self.assertLess(co2_error, 0.1)
+                    elif use_percentages:
+                        self.assertLess(best_mixture_l2_error, 50.0)
+                        self.assertLess(ef_error, 0.6)
+                        self.assertLess(co2_error, 0.6)
+                    elif not break_first_ingredient:
+                        self.assertLess(best_mixture_l2_error, 50.0)
+                        self.assertLess(ef_error, 0.5)
+                        self.assertLess(co2_error, 0.5)
+                    else:
+                        self.assertLess(best_mixture_l2_error, 70.0)
+                        self.assertLess(ef_error, 0.75)
+                        self.assertLess(co2_error, 1.0)
 
 
 if __name__ == '__main__':

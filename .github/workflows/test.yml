@@ -1,0 +1,14 @@
+name: Test
+
+on:
+    push:
+        branches: ["**"]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+            - name: Run tests
+              run: docker-compose -f docker-compose.yml -f docker-compose-dev.yml run python main_test.py
