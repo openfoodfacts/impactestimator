@@ -11,4 +11,4 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v2
             - name: Run tests
-              run: docker-compose -f docker-compose.yaml -f docker-compose-dev.yaml run python main_test.py
+              run: docker-compose -f docker-compose.yaml -f docker-compose-dev.yaml run impact python main_test.py
