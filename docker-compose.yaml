@@ -8,3 +8,10 @@ services:
             dockerfile: Dockerfile
         ports:
             - "8000:8000"
+        command:
+            [
+                "python",
+                "main.py",
+                "--productopener_base_url",
+                "https://world.openfoodfacts.org/",
+            ]

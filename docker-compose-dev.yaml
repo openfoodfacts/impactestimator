@@ -4,3 +4,10 @@ services:
     impact:
         volumes:
             - ".:/app"
+        command:
+            [
+                "python",
+                "main.py",
+                "--productopener_base_url",
+                "http://world.productopener.localhost/",
+            ]
