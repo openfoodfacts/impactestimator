@@ -1,7 +1,13 @@
 version: "3.7"
 
+networks:
+    po_webnet:
+        external: true
+
 services:
     impact:
+        networks:
+            - po_webnet
         volumes:
             - ".:/app"
         command:
@@ -9,5 +15,9 @@ services:
                 "python",
                 "main.py",
                 "--productopener_base_url",
-                "http://world.productopener.localhost/",
+                "http://frontend/",
+                "--productopener_username",
+                "ecoscore-impact-estimator",
+                "--productopener_password",
+                "estimator",
             ]
