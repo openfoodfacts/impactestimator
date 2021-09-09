@@ -105,7 +105,7 @@ def run_update_loop():
                     "user_id": args.productopener_username,
                     "password": args.productopener_password,
                     "code": prod["code"],
-                    "ecoscore_extended_data": decoration,
+                    "ecoscore_extended_data": json.dumps(decoration),
                     "ecoscore_extended_data_version": estimation_version,
                     })
                 if response.status_code == 200:
