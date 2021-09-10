@@ -75,7 +75,11 @@ def get_products():
     url = (args.productopener_base_url +
             "api/v2/search?states_tags=en:ingredients-completed," +
             "en:nutrition-facts-completed&" +
-            f"misc_tags=-en:ecoscore-extended-data-version-{estimation_version}&fields=code,ingredients,nutriments,product_name")
+            f"misc_tags=-en:ecoscore-extended-data-version-{estimation_version}&" +
+            "fields=code,ingredients,nutriments,product_name&" +
+            "sort_by=unique_scans_n&" +
+            "page_size=20")
+    logging.info(f"Looking for products using '{url}'")
     response = requests.get(url, headers={"Accept": "application/json"})
     if response.status_code != 200:
         raise Exception(f"{url} -> {response.status_code}")
