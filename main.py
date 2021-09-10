@@ -121,7 +121,7 @@ def run_update_loop():
         logging.info("run_update_loop()")
         while True:
             products = get_products()
-            logging.info(f"Found {len(products)} products to decorate")
+            logging.info(f"❤️  Found {len(products)} products to decorate")
             for prod in products:
                 stats["seen"] += 1
                 logging.info(f"Found product {prod_desc(prod)}")
