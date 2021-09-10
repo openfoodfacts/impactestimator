@@ -16,6 +16,8 @@ services:
                 "main.py",
                 "--productopener_base_url",
                 "http://frontend/",
+                "--productopener_host_header",
+                "world.productopener.localhost",
                 "--productopener_username",
                 "ecoscore-impact-estimator",
                 "--productopener_password",

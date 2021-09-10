@@ -10,6 +10,7 @@ import sys
 import json
 import time
 import re
+import urllib
                     
 
 estimation_version = 1
@@ -23,6 +24,7 @@ parser = argparse.ArgumentParser(description="Start the impact estimator service
 parser.add_argument("--productopener_base_url", help="Base URL to the productopener service")
 parser.add_argument("--productopener_username", help="Username for the productopener service")
 parser.add_argument("--productopener_password", help="Password for the productopener service")
+parser.add_argument("--productopener_host_header", help="Host header in requests to avoid extra redirects in the responses")
 args = parser.parse_args()
 
 logging.info(f"Service starting with productopener_base_url {args.productopener_base_url}")
@@ -77,10 +79,9 @@ def get_products():
             "en:nutrition-facts-completed&" +
             f"misc_tags=-en:ecoscore-extended-data-version-{estimation_version}&" +
             "fields=code,ingredients,nutriments,product_name&" +
-            "sort_by=unique_scans_n&" +
             "page_size=20")
     logging.info(f"Looking for products using '{url}'")
-    response = requests.get(url, headers={"Accept": "application/json"})
+    response = requests.get(url, headers={"Accept": "application/json", "Host": args.productopener_host_header})
     if response.status_code != 200:
         raise Exception(f"{url} -> {response.status_code}")
     js = json.loads(response.text)
@@ -99,17 +100,25 @@ def bsonify(m):
 def update_product(prod, decoration):
     decoration = bsonify(decoration)
     url = args.productopener_base_url + "cgi/product_jqm_multilingual.pl"
-    response = requests.post(url, data={
+    params = {
         "user_id": args.productopener_username,
         "password": args.productopener_password,
         "code": prod["code"],
         "ecoscore_extended_data": json.dumps(decoration),
         "ecoscore_extended_data_version": estimation_version,
-        })
+        }
+    #logging.info(f'curl -v -H "Accept: application/json" -XPOST "{url}" --data-raw "{urllib.parse.urlencode(params)}"')
+    response = requests.post(url, data=params, headers={"Accept": "application/json", "Host": args.productopener_host_header})
     if response.status_code == 200:
-        js = json.loads(re.match("{.*}", response.text)[0])
-        if js["status"] != 1:
-            raise Exception(response.text)
+        try:
+            js = json.loads(response.text)
+            if js["status"] != 1:
+                raise Exception(response.text)
+        except json.JSONDecodeError:
+            if response.text.find("Incorrect user name or password"):
+                raise Exception("Incorrect user name or password")
+            else:
+                raise Exception("Response not valid JSON!")
     else:
         logging.info(f"Storing decoration for {prod_desc(prod)}: {response.text}!")
         logging.info(f"Problematic decoration: {decoration}")
@@ -124,7 +133,7 @@ def run_update_loop():
             logging.info(f"❤️  Found {len(products)} products to decorate")
             for prod in products:
                 stats["seen"] += 1
-                logging.info(f"Found product {prod_desc(prod)}")
+                logging.info(f"Looking at {prod_desc(prod)}")
                 decoration = {}
                 try:
                     impact = estimate_impacts(
