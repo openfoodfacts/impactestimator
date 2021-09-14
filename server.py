@@ -23,7 +23,7 @@ class Server:
         self.productopener_password = productopener_password
         self.estimation_version = 1
         self.impact_categories = ["EF single score",
-                                 "Climate change"]
+                                  "Climate change"]
         self.stats = {
                 "status": "off",
                 "seen": 0,
