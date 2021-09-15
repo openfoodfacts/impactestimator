@@ -7,6 +7,7 @@ import json
 import time
 import re
 import urllib
+import threading
                     
 
 class Server:
@@ -21,7 +22,7 @@ class Server:
         self.productopener_host_header = productopener_host_header
         self.productopener_username = productopener_username
         self.productopener_password = productopener_password
-        self.estimation_version = 1
+        self.estimation_version = 2
         self.impact_categories = ["EF single score",
                                   "Climate change"]
         self.stats = {
@@ -67,7 +68,7 @@ class Server:
         for k in m:
             v = m[k]
             if isinstance(v, dict):
-                v = bsonify(v)
+                v = self._bsonify(v)
             k = k.replace(".", "_").replace("$", "_")
             res[k] = v
         return res
@@ -98,11 +99,19 @@ class Server:
             self.logging.info(f"Problematic decoration: {decoration}")
             raise Exception(f"Status {response.status_code}")
 
-    def run_update_loop(self):
+    def stop_update_loop(self):
+        self.stats["status"] = "stopping"
+
+    def start_update_loop(self):
+        thread = threading.Thread(target=self._run_update_loop, args=())
+        thread.daemon = True
+        thread.start()
+
+    def _run_update_loop(self):
         self.stats["status"] = "on"
         try:
             self.logging.info("run_update_loop()")
-            while True:
+            while self.stats["status"] == "on":
                 products = self._get_products()
                 self.logging.info(f"❤️  Found {len(products)} products to decorate")
                 for prod in products:
@@ -125,7 +134,7 @@ class Server:
                         self.stats["estimate_impacts_failure"] += 1
                         self._add_error(error_desc)
                     try:
-                        update_product(prod, decoration)
+                        self._update_product(prod, decoration)
                         self.logging.info(f"❤️  Stored decoration for {self._prod_desc(prod)}")
                         self.stats["update_extended_data_success"] += 1
                     except Exception as e:

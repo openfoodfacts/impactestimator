@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 
-import threading
 import argparse
 import uvicorn
 
@@ -26,16 +25,14 @@ serv.logging.info(f"Service starting with productopener_base_url {args.productop
 app = FastAPI()
 
 @app.get("/")
-def read_root():
+def stats():
     return serv.stats
 
 @app.on_event("startup")
 def startup():
-    thread = threading.Thread(target=serv.run_update_loop, args=())
-    thread.daemon = True
-    thread.start()
+    serv.start_update_loop()
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="info", reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
