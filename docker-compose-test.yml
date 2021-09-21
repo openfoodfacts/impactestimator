@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+    impact:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ".:/app"
+        command: ["python", "server_test.py"]
