@@ -2,15 +2,16 @@ from fastapi import FastAPI
 
 import argparse
 import uvicorn
+import os
 
 import server
 
 
 parser = argparse.ArgumentParser(description="Start the impact estimator service.")
-parser.add_argument("--productopener_base_url", help="Base URL to the productopener service")
-parser.add_argument("--productopener_username", help="Username for the productopener service")
-parser.add_argument("--productopener_password", help="Password for the productopener service")
-parser.add_argument("--productopener_host_header", help="Host header in requests to avoid extra redirects in the responses")
+parser.add_argument("--productopener_base_url", help="Base URL to the productopener service", default=os.environ.get("PRODUCT_OPENER_URL"))
+parser.add_argument("--productopener_username", help="Username for the productopener service", default=os.environ.get("PRODUCT_OPENER_USERNAME"))
+parser.add_argument("--productopener_password", help="Password for the productopener service", default=os.environ.get("PRODUCT_OPENER_PASSWORD"))
+parser.add_argument("--productopener_host_header", help="Host header in requests to avoid extra redirects in the responses", default=os.environ.get("PRODUCT_OPENER_HOST_HEADER"))
 args = parser.parse_args()
 
 serv = server.Server(
