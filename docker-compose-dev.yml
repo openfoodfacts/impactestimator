@@ -6,6 +6,9 @@ networks:
 
 services:
     impact:
+        build:
+            context: .
+            dockerfile: Dockerfile
         networks:
             - po_webnet
         volumes:

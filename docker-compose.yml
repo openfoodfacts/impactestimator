@@ -2,18 +2,11 @@ version: "3.7"
 
 services:
     impact:
-        container_name: impact
-        build:
-            context: .
-            dockerfile: Dockerfile
+        image: ghcr.io/openfoodfacts/impactestimator:$TAG
+        environment:
+            - PRODUCT_OPENER_URL
+            - PRODUCT_OPENER_USERNAME
+            - PRODUCT_OPENER_PASSWORD
+            - PRODUCT_OPENER_HOST_HEADER
         ports:
             - "8000:8000"
-        command:
-            [
-                "python",
-                "main.py",
-                "--productopener_base_url",
-                "https://world.openfoodfacts.org/",
-                "--productopener_host_header",
-                "world.openfoodfacts.org",
-            ]

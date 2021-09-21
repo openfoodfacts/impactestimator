@@ -9,3 +9,4 @@ ENV PYTHONPATH=$PYTHONPATH:/impact
 
 WORKDIR /app
 COPY . ./
+CMD ["python", "main.py"]
