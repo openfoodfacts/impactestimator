@@ -11,6 +11,6 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v2
             - name: Run pytype
-              run: docker-compose -f docker-compose.yaml run impact pytype main.py server.py
+              run: docker-compose -f docker-compose.yml run impact pytype main.py server.py
             - name: Run tests
-              run: docker-compose -f docker-compose.yaml run impact python server_test.py
+              run: docker-compose -f docker-compose.yml run impact python server_test.py
