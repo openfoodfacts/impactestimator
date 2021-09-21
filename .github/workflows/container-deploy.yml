@@ -6,7 +6,7 @@ on:
     - main
     - deploy-*
     - release-v*.*.*
-  tags:
+    tags:
     - v*.*.*
 
 jobs:
