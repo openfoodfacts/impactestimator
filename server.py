@@ -148,6 +148,8 @@ class Server:
                         self.stats["update_extended_data_failure"] += 1
                         self._add_error(error_desc)
                 time.sleep(30)
+        except Exception as e:
+            self.logging.info(f"💀 update loop terminates: {e}")
         finally:
             self.stats["status"] = "off"
 
