@@ -15,6 +15,8 @@ class Server:
                  logging=logging.getLogger("uvicorn.info"),
                  productopener_base_url=None,
                  productopener_host_header=None,
+                 productopener_basic_auth_username=None,
+                 productopener_basic_auth_password=None,
                  productopener_username=None,
                  productopener_password=None):
         self.logging = logging
@@ -22,7 +24,10 @@ class Server:
         self.productopener_host_header = productopener_host_header
         self.productopener_username = productopener_username
         self.productopener_password = productopener_password
-        self.estimation_version = 2
+        self.auth = None
+        if productopener_basic_auth_username is not None and productopener_basic_auth_password is not None:
+            self.auth = requests.auth.HTTPBasicAuth(productopener_basic_auth_username, productopener_basic_auth_password)
+        self.estimation_version = 1
         self.impact_categories = ["EF single score",
                                   "Climate change"]
         self.stats = {
@@ -57,7 +62,7 @@ class Server:
                 "page_size=20&" +
                 "nocache=1")
         self.logging.info(f"Looking for products using '{url}'")
-        response = requests.get(url, headers={"Accept": "application/json", "Host": self.productopener_host_header})
+        response = requests.get(url, headers={"Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
         if response.status_code != 200:
             raise Exception(f"{url} -> {response.status_code}")
         js = json.loads(response.text)
@@ -83,7 +88,7 @@ class Server:
                 "ecoscore_extended_data": json.dumps(decoration),
                 "ecoscore_extended_data_version": self.estimation_version,
                 }
-        response = requests.post(url, data=params, headers={"Accept": "application/json", "Host": self.productopener_host_header})
+        response = requests.post(url, data=params, headers={"Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
         if response.status_code == 200:
             try:
                 js = json.loads(response.text)
