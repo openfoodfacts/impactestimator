@@ -63,7 +63,7 @@ class Server:
                 "sort_by=nothing&" +
                 "no_count=1&" +
                 "no_cache=1")
-        self.logging.info(f"Looking for products using '{url}'")
+        self.logging.info(f"Looking for products using '{url}' with {self.auth}")
         response = requests.get(url, headers={"Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
         if response.status_code != 200:
             raise Exception(f"{url} -> {response.status_code}")
