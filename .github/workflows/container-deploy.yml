@@ -86,6 +86,8 @@ jobs:
                       echo "PRODUCT_OPENER_URL=${{ secrets.PRODUCT_OPENER_URL }}" >> .env
                       echo "PRODUCT_OPENER_USERNAME=${{ secrets.PRODUCT_OPENER_USERNAME }}" >> .env
                       echo "PRODUCT_OPENER_PASSWORD=${{ secrets.PRODUCT_OPENER_PASSWORD }}" >> .env
+                      echo "PRODUCT_OPENER_BASIC_AUTH_USERNAME=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_USERNAME }}" >> .env
+                      echo "PRODUCT_OPENER_BASIC_AUTH_PASSWORD=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_PASSWORD }}" >> .env
                       echo "PRODUCT_OPENER_HOST_HEADER=${{ secrets.PRODUCT_OPENER_HOST_HEADER }}" >> .env
 
             # - name: Create external Docker volumes
