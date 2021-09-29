@@ -60,6 +60,7 @@ class Server:
                 f"misc_tags=-en:ecoscore-extended-data-version-{self.estimation_version}&" +
                 "fields=code,ingredients,nutriments,product_name&" +
                 "page_size=20&" +
+                "sort_by=nothing&" +
                 "nocache=1")
         self.logging.info(f"Looking for products using '{url}'")
         response = requests.get(url, headers={"Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
