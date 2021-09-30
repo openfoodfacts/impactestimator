@@ -98,7 +98,7 @@ class Server:
                     raise Exception(response.text)
             except json.JSONDecodeError:
                 if response.text.find("Incorrect user name or password"):
-                    raise Exception("Incorrect user name or password")
+                    raise Exception(f"Incorrect user name or password ({self.productopener_username}/{self.productopener_password})")
                 else:
                     raise Exception("Response not valid JSON!")
         else:
