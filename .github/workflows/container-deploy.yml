@@ -118,8 +118,8 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
-              cd ${{ matrix.env }}
-              docker-compose up -d --remove-orphans 2>&1
+            cd ${{ matrix.env }}
+            make up
 
       - name: Check services are up
         uses: appleboy/ssh-action@master
@@ -133,17 +133,8 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
-              cd ${{ matrix.env }}
-              exit_code=0
-              for service in `docker-compose config  --service | tr '\n' ' '`; do 
-                if [ -z `docker-compose ps -q $service` ] || [ -z `docker ps -q --no-trunc | grep $(docker-compose ${{ env.compose_args }} ps -q $service)` ]; then
-                  echo "$service: DOWN"
-                  exit_code=1
-                else
-                  echo "$service: UP"
-                fi
-              done;
-              exit $exit_code;
+            cd ${{ matrix.env }}
+            make livecheck
 
       - name: Cleanup obsolete Docker objects
         uses: appleboy/ssh-action@master
@@ -157,5 +148,5 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
-              cd ${{ matrix.env }}
-              docker system prune -af
+            cd ${{ matrix.env }}
+            make prune
