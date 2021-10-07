@@ -3,11 +3,10 @@ name: Docker Compose Deployment CI
 on:
   push:
     branches:
-        - main
-        - deploy-*
-        - release-v*.*.*
+      - main
+      - deploy-*
     tags:
-        - v*.*.*
+      - v*.*.*
 
 jobs:
   deploy:
@@ -52,17 +51,17 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
-              # Clone Git repository if not already there
-              [ ! -d '${{ matrix.env }}' ] && git clone --depth 1 https://github.com/${{ github.repository }} ${{ matrix.env }} --no-single-branch 2>&1
+            # Clone Git repository if not already there
+            [ ! -d '${{ matrix.env }}' ] && git clone --depth 1 https://github.com/${{ github.repository }} ${{ matrix.env }} --no-single-branch 2>&1
 
-              # Go to repository directory
-              cd ${{ matrix.env }}
+            # Go to repository directory
+            cd ${{ matrix.env }}
 
-              # Fetch newest commits (in case it wasn't freshly cloned)
-              git fetch --depth 1
+            # Fetch newest commits (in case it wasn't freshly cloned)
+            git fetch --depth 1
 
-              # Checkout current commit SHA
-              git checkout -qf ${{ github.sha }}
+            # Checkout current commit SHA
+            git checkout -qf ${{ github.sha }}
 
       - name: Set environment variables
         uses: appleboy/ssh-action@master
@@ -75,24 +74,24 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
-              # Go to repository directory
-              cd ${{ matrix.env }}
+            # Go to repository directory
+            cd ${{ matrix.env }}
 
-              # Set Docker Compose variables
-              echo "DOCKER_CLIENT_TIMEOUT=120" > .env
-              echo "COMPOSE_HTTP_TIMEOUT=120" >> .env
-              echo "COMPOSE_PROJECT_NAME=ie" >> .env
-              echo "COMPOSE_PATH_SEPARATOR=;" >> .env
-              echo "COMPOSE_FILE=docker-compose.yml" >> .env
-              echo "TAG=sha-${{ github.sha }}" >> .env
+            # Set Docker Compose variables
+            echo "DOCKER_CLIENT_TIMEOUT=120" > .env
+            echo "COMPOSE_HTTP_TIMEOUT=120" >> .env
+            echo "COMPOSE_PROJECT_NAME=ie" >> .env
+            echo "COMPOSE_PATH_SEPARATOR=;" >> .env
+            echo "COMPOSE_FILE=docker-compose.yml" >> .env
+            echo "TAG=sha-${{ github.sha }}" >> .env
 
-              # App environment variables
-              echo "PRODUCT_OPENER_URL=${{ secrets.PRODUCT_OPENER_URL }}" >> .env
-              echo "PRODUCT_OPENER_USERNAME=${{ secrets.PRODUCT_OPENER_USERNAME }}" >> .env
-              echo "PRODUCT_OPENER_PASSWORD=${{ secrets.PRODUCT_OPENER_PASSWORD }}" >> .env
-              echo "PRODUCT_OPENER_BASIC_AUTH_USERNAME=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_USERNAME }}" >> .env
-              echo "PRODUCT_OPENER_BASIC_AUTH_PASSWORD=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_PASSWORD }}" >> .env
-              echo "PRODUCT_OPENER_HOST_HEADER=${{ secrets.PRODUCT_OPENER_HOST_HEADER }}" >> .env
+            # App environment variables
+            echo "PRODUCT_OPENER_URL=${{ secrets.PRODUCT_OPENER_URL }}" >> .env
+            echo "PRODUCT_OPENER_USERNAME=${{ secrets.PRODUCT_OPENER_USERNAME }}" >> .env
+            echo "PRODUCT_OPENER_PASSWORD=${{ secrets.PRODUCT_OPENER_PASSWORD }}" >> .env
+            echo "PRODUCT_OPENER_BASIC_AUTH_USERNAME=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_USERNAME }}" >> .env
+            echo "PRODUCT_OPENER_BASIC_AUTH_PASSWORD=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_PASSWORD }}" >> .env
+            echo "PRODUCT_OPENER_HOST_HEADER=${{ secrets.PRODUCT_OPENER_HOST_HEADER }}" >> .env
 
       # - name: Create external Docker volumes
       #   uses: appleboy/ssh-action@master
