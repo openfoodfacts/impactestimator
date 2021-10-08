@@ -1,14 +1,13 @@
 version: "3.7"
-
 services:
-    impact:
-        image: ghcr.io/openfoodfacts/impactestimator:$TAG
-        environment:
-            - PRODUCT_OPENER_URL
-            - PRODUCT_OPENER_USERNAME
-            - PRODUCT_OPENER_PASSWORD
-            - PRODUCT_OPENER_BASIC_AUTH_PASSWORD
-            - PRODUCT_OPENER_BASIC_AUTH_USERNAME
-            - PRODUCT_OPENER_HOST_HEADER
-        ports:
-            - "8000:8000"
+  impact:
+    image: ghcr.io/openfoodfacts/impactestimator:$TAG
+    environment:
+      - PRODUCT_OPENER_URL
+      - PRODUCT_OPENER_USERNAME
+      - PRODUCT_OPENER_PASSWORD
+      - PRODUCT_OPENER_BASIC_AUTH_PASSWORD
+      - PRODUCT_OPENER_BASIC_AUTH_USERNAME
+      - PRODUCT_OPENER_HOST_HEADER
+    ports:
+      - "8000:8000"
