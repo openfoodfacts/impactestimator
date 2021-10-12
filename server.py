@@ -99,6 +99,7 @@ class Server:
         headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"}
         if self.productopener_host_header not in ["-", ""]:
             headers["Host"] = self.productopener_host_header
+        self.logging.info(f"Using headers {headers}")
         response = requests.post(url, data=params, headers=headers, auth=self.auth)
         if response.status_code == 200:
             try:
@@ -106,8 +107,7 @@ class Server:
                 if js["status"] != 1:
                     raise Exception(response.text)
             except json.JSONDecodeError:
-                if response.text.find("Incorrect user name or password"):
-                    self.logging.info(f"Incorrect user name or password detected inside\n{response.text}")
+                if response.text.find("Incorrect user name or password") != -1:
                     raise Exception(f"Incorrect user name or password ({self.productopener_username}/{self.productopener_password})")
                 else:
                     raise Exception("Response not valid JSON!")
