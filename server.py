@@ -67,7 +67,10 @@ class Server:
             self.logging.info(f"Looking for products using '{url}' with [{self.auth.username}/{self.auth.password}]")
         else:
             self.logging.info(f"Looking for products using '{url}'")
-        response = requests.get(url, headers={"Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
+        headers = {"Accept": "application/json"}
+        if self.productopener_host_header not in ["-", ""]:
+            headers["Host"] = self.productopener_host_header
+        response = requests.get(url, headers=headers, auth=self.auth)
         if response.status_code != 200:
             raise Exception(f"{url} -> {response.status_code}")
         js = json.loads(response.text)
@@ -93,7 +96,10 @@ class Server:
                 "ecoscore_extended_data": json.dumps(decoration),
                 "ecoscore_extended_data_version": self.estimation_version,
                 }
-        response = requests.post(url, data=params, headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
+        headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"}
+        if self.productopener_host_header not in ["-", ""]:
+            headers["Host"] = self.productopener_host_header
+        response = requests.post(url, data=params, headers=headers, auth=self.auth)
         if response.status_code == 200:
             try:
                 js = json.loads(response.text)
