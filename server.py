@@ -99,7 +99,6 @@ class Server:
         headers = {"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"}
         if self.productopener_host_header not in ["-", ""]:
             headers["Host"] = self.productopener_host_header
-        self.logging.info(f"Using headers {headers}")
         response = requests.post(url, data=params, headers=headers, auth=self.auth)
         if response.status_code == 200:
             try:
