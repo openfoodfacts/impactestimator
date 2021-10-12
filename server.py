@@ -93,7 +93,7 @@ class Server:
                 "ecoscore_extended_data": json.dumps(decoration),
                 "ecoscore_extended_data_version": self.estimation_version,
                 }
-        response = requests.post(url, data=params, headers={"Content-Type": "multipart/form-data", "Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
+        response = requests.post(url, data=params, headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json", "Host": self.productopener_host_header}, auth=self.auth)
         if response.status_code == 200:
             try:
                 js = json.loads(response.text)
