@@ -153,13 +153,14 @@ class Server:
             p.kill()
             p.join()
             p.close()
+        results = (None, "no results yet")
         try:
             results = q.get(block=False)
-            if results[1]:
-                raise Exception(f"estimation process got exception: {results[1]}")
-            return results[0]
         except Exception as e:
             raise Exception(f"estimation queue read: {e.__class__.__name__}: {e}")
+        if results[1]:
+            raise Exception(f"estimation process got exception: {results[1]}")
+        return results[0]
 
 
     def _run_update_loop(self):
