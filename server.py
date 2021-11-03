@@ -138,10 +138,13 @@ class Server:
             p.join(deadline)
             if p.is_alive():
                 p.kill()
-                raise Exception(f"{self._prod_desc(product)} timed out after {deadline} seconds")
+                raise Exception(f"{self._prod_desc(product)} process timed out after {deadline} seconds")
         finally:
             p.close()
-        return q.get()
+        try:
+            return q.get(timeout=deadline)
+        except:
+            raise Exception(f"{self._prod_desc(product)} queue read timed out after {deadline} seconds")
 
 
     def _run_update_loop(self):
