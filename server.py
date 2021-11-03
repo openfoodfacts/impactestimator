@@ -124,13 +124,13 @@ class Server:
         thread.daemon = True
         thread.start()
 
-    def _estimate_outside_process(product, queue):
+    def _estimate_outside_process(self, product, queue):
         queue.put(estimate_impacts(
             product=prod,
             distributions_as_result=True,
             impact_names=self.impact_categories))
 
-    def _estimate_with_deadline(product, deadline=300):
+    def _estimate_with_deadline(self, product, deadline=300):
         q = multiprocessing.Queue(1)
         p = multiprocessing.Process(target=self._estimate_outside_process, args=(product, q))
         try:
