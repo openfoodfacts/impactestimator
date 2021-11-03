@@ -126,7 +126,7 @@ class Server:
 
     def _estimate_outside_process(self, product, queue):
         queue.put(estimate_impacts(
-            product=prod,
+            product=product,
             distributions_as_result=True,
             impact_names=self.impact_categories))
 
