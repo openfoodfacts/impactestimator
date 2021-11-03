@@ -8,6 +8,7 @@ import time
 import re
 import urllib
 import threading
+import multiprocessing
                     
 
 class Server:
@@ -27,7 +28,7 @@ class Server:
         self.auth = None
         if productopener_basic_auth_username is not None and productopener_basic_auth_password is not None:
             self.auth = requests.auth.HTTPBasicAuth(productopener_basic_auth_username, productopener_basic_auth_password)
-        self.estimation_version = 1
+        self.estimation_version = 2
         self.impact_categories = ["EF single score",
                                   "Climate change"]
         self.stats = {
@@ -123,6 +124,26 @@ class Server:
         thread.daemon = True
         thread.start()
 
+    def _estimate_outside_process(product, queue):
+        queue.put(estimate_impacts(
+            product=prod,
+            distributions_as_result=True,
+            impact_names=self.impact_categories))
+
+    def _estimate_with_deadline(product, deadline=300):
+        q = multiprocessing.Queue(1)
+        p = multiprocessing.Process(target=self._estimate_outside_process, args=(product, q))
+        try:
+            p.start()
+            p.join(deadline)
+            if p.is_alive():
+                p.kill()
+                raise Exception(f"{self._prod_desc(product)} timed out after {deadline} seconds")
+        finally:
+            p.close()
+        return q.get()
+
+
     def _run_update_loop(self):
         self.stats["status"] = "on"
         try:
@@ -135,11 +156,7 @@ class Server:
                     self.logging.info(f"Looking at {self._prod_desc(prod)}")
                     decoration = {}
                     try:
-                        impact = estimate_impacts(
-                                product=prod,
-                                distributions_as_result=True,
-                                total_mass_used=100,
-                                impact_names=self.impact_categories)
+                        impact = self._estimate_with_deadline(prod)
                         self.logging.info(f"❤️  Computed {impact['impacts_geom_means']}") 
                         decoration["impact"] = impact
                         self.stats["estimate_impacts_success"] += 1
