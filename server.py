@@ -148,9 +148,9 @@ class Server:
             p.start()
             p.join(deadline)
             if p.is_alive():
-                p.kill()
                 raise Exception(f"estimation process timed out after {deadline} seconds")
         finally:
+            p.kill()
             p.close()
         try:
             results = q.get(block=False)
