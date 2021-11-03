@@ -125,12 +125,23 @@ class Server:
         thread.start()
 
     def _estimate_outside_process(self, product, queue):
-        queue.put(estimate_impacts(
-            product=product,
-            distributions_as_result=True,
-            impact_names=self.impact_categories))
+        """This function runs in a separate process, and communicates with the parent
+        through the provided queue. The queue must get a tuple of (result, exception-string)
+        when this function terminates."""
+        try:
+            impact = estimate_impacts(
+                    product=product,
+                    distributions_as_result=True,
+                    impact_names=self.impact_categories)
+            queue.put((impact, None))
+        except Exception as e:
+            queue.put((None, f"{e.__class__.__name__}: {e}"))
 
     def _estimate_with_deadline(self, product, deadline=300):
+        """This function starts _estimate_outside_process in a separate process, giving
+        it a queue to return a (result, exception-string) through.
+        The process can time out, and the queue can be empty - both need to provide
+        exceptions in addition to anything received via the queue."""
         q = multiprocessing.Queue(1)
         p = multiprocessing.Process(target=self._estimate_outside_process, args=(product, q))
         try:
@@ -138,13 +149,16 @@ class Server:
             p.join(deadline)
             if p.is_alive():
                 p.kill()
-                raise Exception(f"process timed out after {deadline} seconds")
+                raise Exception(f"estimation process timed out after {deadline} seconds")
         finally:
             p.close()
         try:
-            return q.get(block=False)
+            results = q.get(block=False)
+            if results[1]:
+                raise Exception(f"estimation process got exception: {results[1]}")
+            return results[0]
         except:
-            raise Exception(f"queue read timed out after {deadline} seconds")
+            raise Exception("estimation queue empty")
 
 
     def _run_update_loop(self):
