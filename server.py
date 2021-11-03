@@ -141,10 +141,7 @@ class Server:
                 raise Exception(f"{self._prod_desc(product)} process timed out after {deadline} seconds")
         finally:
             p.close()
-        try:
-            return q.get(timeout=deadline)
-        except:
-            raise Exception(f"{self._prod_desc(product)} queue read timed out after {deadline} seconds")
+        return q.get(block=False)
 
 
     def _run_update_loop(self):
