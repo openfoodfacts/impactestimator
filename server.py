@@ -137,7 +137,7 @@ class Server:
         except Exception as e:
             queue.put((None, f"{e.__class__.__name__}: {e}"))
 
-    def _estimate_with_deadline(self, product, deadline=300):
+    def _estimate_with_deadline(self, product, deadline=600):
         """This function starts _estimate_outside_process in a separate process, giving
         it a queue to return a (result, exception-string) through.
         The process can time out, and the queue can be empty - both need to provide
@@ -147,7 +147,7 @@ class Server:
         try:
             p.start()
             p.join(deadline)
-            if p.exitcode is None:
+            if p.is_alive():
                 raise Exception(f"estimation process timed out after {deadline} seconds")
         finally:
             p.kill()
@@ -158,8 +158,8 @@ class Server:
             if results[1]:
                 raise Exception(f"estimation process got exception: {results[1]}")
             return results[0]
-        except:
-            raise Exception("estimation queue empty")
+        except Exception as e:
+            raise Exception(f"estimation queue read: {e.__class__.__name__}: {e}")
 
 
     def _run_update_loop(self):
