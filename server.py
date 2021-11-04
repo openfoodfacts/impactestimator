@@ -84,7 +84,6 @@ class Server:
             if isinstance(v, dict):
                 v = self._bsonify(v)
             k = re.sub(r'[^a-zA-Z0-9]', '_', k)
-            k = k.replace(".", "_").replace("$", "_").replace(" ", "_")
             res[k] = v
         return res
 
