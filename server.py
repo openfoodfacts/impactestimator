@@ -78,14 +78,26 @@ class Server:
         return js["products"]
 
     def _bsonify(self, m):
-        res = {}
-        for k in m:
-            v = m[k]
-            if isinstance(v, dict):
-                v = self._bsonify(v)
-            k = re.sub(r'[^a-zA-Z0-9]', '_', k)
-            res[k] = v
-        return res
+        if isinstance(m, dict):
+            res = {}
+            for k in m:
+                v = self._bsonify(m[k])
+                k = re.sub(r'[^:-_a-zA-Z0-9]', '_', k)
+                res[k] = v
+            return res
+        elif isinstance(m, list):
+            res = []
+            for e in m:
+                res.append(self._bsonify(e))
+            return res
+        elif isinstance(m, tuple):
+            res = []
+            for e in m:
+                res.append(self._bsonify(e))
+            return tuple(res)
+        else:
+            return m
+            
 
     def _update_product(self, prod, decoration):
         decoration = self._bsonify(decoration)
@@ -112,7 +124,7 @@ class Server:
                 else:
                     raise Exception("Response not valid JSON!")
         else:
-            self.logging.info(f"Storing decoration for {self._prod_desc(prod)}: {response.text}!")
+            self.logging.info(f"Storing decoration for {self._prod_desc(prod)}: {response.text}")
             self.logging.info(f"Problematic decoration: {decoration}")
             raise Exception(f"Status {response.status_code}")
 
