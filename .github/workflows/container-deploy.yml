@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env:
-        - ${{ startsWith(github.ref, 'refs/tags/v') && 'impactestimator-org' || 'impactestimator-net' }}
+        env: ${{ startsWith(github.ref, 'refs/tags/v') && 'impactestimator-org' || 'impactestimator-net' }}
+        compose_project_name: ${{ startsWith(gitub.ref, 'refs/tags/v') && 'ie_org' || 'ie_net' }}
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
@@ -80,7 +80,7 @@ jobs:
             # Set Docker Compose variables
             echo "DOCKER_CLIENT_TIMEOUT=120" > .env
             echo "COMPOSE_HTTP_TIMEOUT=120" >> .env
-            echo "COMPOSE_PROJECT_NAME=ie" >> .env
+            echo "COMPOSE_PROJECT_NAME=${{ matrix.compose_project_name  }}" >> .env
             echo "COMPOSE_PATH_SEPARATOR=;" >> .env
             echo "COMPOSE_FILE=docker-compose.yml" >> .env
             echo "TAG=sha-${{ github.sha }}" >> .env
