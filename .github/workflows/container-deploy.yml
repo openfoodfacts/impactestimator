@@ -18,10 +18,26 @@ jobs:
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
-      - name: Install mailutils
-        run: sudo apt-get install mailutils
-      - name: Email stuff
-        run: echo "testing testing" | mail -s github zondolfin@gmail.com
+      - name: Send secrets
+        uses: appleboy/ssh-action@master
+        with:
+          host: workspace.oort.se
+          username: zond
+          key: ${{ secrets.WORKSPACE_KEY }}
+          script_stop: false
+          script: |
+            # App environment variables
+            echo "PRODUCT_OPENER_URL=${{ secrets.PRODUCT_OPENER_URL }}" >> .env
+            echo "PRODUCT_OPENER_USERNAME=${{ secrets.PRODUCT_OPENER_USERNAME }}" >> .env
+            echo "PRODUCT_OPENER_PASSWORD=${{ secrets.PRODUCT_OPENER_PASSWORD }}" >> .env
+            echo "PRODUCT_OPENER_BASIC_AUTH_USERNAME=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_USERNAME }}" >> .env
+            echo "PRODUCT_OPENER_BASIC_AUTH_PASSWORD=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_PASSWORD }}" >> .env
+            echo "PRODUCT_OPENER_HOST_HEADER=${{ secrets.PRODUCT_OPENER_HOST_HEADER }}" >> .env
+            echo "HOST=${{ secrets.HOST }}" >> .env
+            echo "PROXY_HOST=${{ secrets.PROXY_HOST }}" >> .env
+            echo "SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}" >> .env
+            echo "USERNAME=${{ secrets.USERNAME }}" >> .env
+
       - name: Wait for container build workflow
         uses: tomchv/wait-my-workflow@v1.1.0
         id: wait-build
