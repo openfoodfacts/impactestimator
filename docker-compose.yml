@@ -10,5 +10,10 @@ services:
       - PRODUCT_OPENER_BASIC_AUTH_USERNAME
       - PRODUCT_OPENER_HOST_HEADER
       - MONITORING_PORT
+      - DOCKER_CPUS
+    deploy:
+        resources:
+            limits:
+                cpus: ${DOCKER_CPUS}
     ports:
       - "${MONITORING_PORT}:${MONITORING_PORT}"
