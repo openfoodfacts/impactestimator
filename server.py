@@ -64,7 +64,7 @@ class Server:
                 "sort_by=nothing&" +
                 "no_count=1&" +
                 "no_cache=1")
-        if self.auth:
+        if self.auth is not None:
             self.logging.info(f"Looking for products using '{url}' with [{self.auth.username}/{self.auth.password}]")
         else:
             self.logging.info(f"Looking for products using '{url}'")
