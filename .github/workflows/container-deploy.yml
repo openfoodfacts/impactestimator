@@ -18,6 +18,8 @@ jobs:
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
+      - name: Email stuff
+        run: echo "testing testing" | mail -s github zondolfin@gmail.com
       - name: Wait for container build workflow
         uses: tomchv/wait-my-workflow@v1.1.0
         id: wait-build
