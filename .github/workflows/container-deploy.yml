@@ -13,8 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: ${{ startsWith(github.ref, 'refs/tags/v') && 'impactestimator-org' || 'impactestimator-net' }}
-        compose_project_name: ${{ startsWith(github.ref, 'refs/tags/v') && 'ie_org' || 'ie_net' }}
+        env:
+          - ${{ startsWith(github.ref, 'refs/tags/v') && 'impactestimator-org' || 'impactestimator-net' }}
+        compose_project_name:
+          - ${{ startsWith(github.ref, 'refs/tags/v') && 'ie_org' || 'ie_net' }}
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
