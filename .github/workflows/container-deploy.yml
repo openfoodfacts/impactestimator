@@ -92,6 +92,7 @@ jobs:
             echo "PRODUCT_OPENER_BASIC_AUTH_USERNAME=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_USERNAME }}" >> .env
             echo "PRODUCT_OPENER_BASIC_AUTH_PASSWORD=${{ secrets.PRODUCT_OPENER_BASIC_AUTH_PASSWORD }}" >> .env
             echo "PRODUCT_OPENER_HOST_HEADER=${{ secrets.PRODUCT_OPENER_HOST_HEADER }}" >> .env
+            echo "MONITORING_PORT=${{ secrets.MONITORING_PORT }}" >> .env
 
       # - name: Create external Docker volumes
       #   uses: appleboy/ssh-action@master

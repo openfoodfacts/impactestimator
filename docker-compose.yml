@@ -10,4 +10,4 @@ services:
       - PRODUCT_OPENER_BASIC_AUTH_USERNAME
       - PRODUCT_OPENER_HOST_HEADER
     ports:
-      - "8032:8032"
+      - "${MONITOR_PORT}:${MONITOR_PORT}"

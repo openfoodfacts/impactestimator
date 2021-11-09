@@ -14,6 +14,7 @@ parser.add_argument("--productopener_password", help="Password for the productop
 parser.add_argument("--productopener_host_header", help="Host header in requests to avoid extra redirects in the responses", default=os.environ.get("PRODUCT_OPENER_HOST_HEADER"))
 parser.add_argument("--productopener_basic_auth_username", help="Basic auth username for the productopener service", default=os.environ.get("PRODUCT_OPENER_BASIC_AUTH_USERNAME"))
 parser.add_argument("--productopener_basic_auth_password", help="Basic auth password for the productopener service", default=os.environ.get("PRODUCT_OPENER_BASIC_AUTH_PASSWORD"))
+parser.add_argument("--monitoring_port", help="Port to serve monitoring on", default=os.environ.get("MONITORING_PORT"))
 args = parser.parse_args()
 
 serv = server.Server(
@@ -39,5 +40,5 @@ def startup():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8032, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=args.monitoring_port, log_level="info")
 
