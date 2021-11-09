@@ -16,8 +16,8 @@ class Server:
                  logging=logging.getLogger("uvicorn.info"),
                  productopener_base_url=None,
                  productopener_host_header=None,
-                 productopener_basic_auth_username=None,
-                 productopener_basic_auth_password=None,
+                 productopener_basic_auth_username="",
+                 productopener_basic_auth_password="",
                  productopener_username=None,
                  productopener_password=None):
         self.logging = logging
@@ -26,7 +26,7 @@ class Server:
         self.productopener_username = productopener_username
         self.productopener_password = productopener_password
         self.auth = None
-        if productopener_basic_auth_username is not None and productopener_basic_auth_password is not None:
+        if productopener_basic_auth_username != "" and productopener_basic_auth_password is != "":
             self.auth = requests.auth.HTTPBasicAuth(productopener_basic_auth_username, productopener_basic_auth_password)
         self.estimation_version = 2
         self.impact_categories = ["EF single score",
