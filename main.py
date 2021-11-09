@@ -40,5 +40,5 @@ def startup():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=args.monitoring_port, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=int(args.monitoring_port), log_level="info")
 
