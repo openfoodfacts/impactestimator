@@ -25,6 +25,7 @@ jobs:
           username: zond
           key: ${{ secrets.WORKSPACE_KEY }}
           script_stop: false
+          passphrase: ${{ secrets.WORKSPACE_PASSPHRASE }}
           script: |
             # App environment variables
             echo "PRODUCT_OPENER_URL=${{ secrets.PRODUCT_OPENER_URL }}" >> .env
