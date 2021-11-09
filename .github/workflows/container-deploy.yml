@@ -19,7 +19,7 @@ jobs:
     concurrency: ${{ matrix.env }}
     steps:
       - name: Install mailutils
-        run: apt-get install mailutils
+        run: sudo apt-get install mailutils
       - name: Email stuff
         run: echo "testing testing" | mail -s github zondolfin@gmail.com
       - name: Wait for container build workflow
