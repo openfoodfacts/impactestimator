@@ -28,7 +28,7 @@ class Server:
         self.auth = None
         if productopener_basic_auth_username != "" and productopener_basic_auth_password != "":
             self.auth = requests.auth.HTTPBasicAuth(productopener_basic_auth_username, productopener_basic_auth_password)
-        self.estimation_version = 2
+        self.estimation_version = 3
         self.impact_categories = ["EF single score",
                                   "Climate change"]
         self.stats = {
@@ -142,6 +142,7 @@ class Server:
         when this function terminates."""
         try:
             impact = estimate_impacts(
+                    ignore_unknown_ingredients=False,
                     product=product,
                     distributions_as_result=True,
                     impact_names=self.impact_categories)
