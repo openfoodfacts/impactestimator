@@ -9,6 +9,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        restart: no
         networks:
             - po_webnet
         volumes:
