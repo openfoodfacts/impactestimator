@@ -66,7 +66,7 @@ class Server:
                 "no_count=1&" +
                 "no_cache=1")
         if self.auth is not None:
-            self.logging.info(f"Looking for products using '{url}' with [{self.auth.username}/{self.auth.password}]")
+            self.logging.info(f"Looking for products using '{url}' with [{self.auth.username}/{self.auth.password[:2]}...]")
         else:
             self.logging.info(f"Looking for products using '{url}'")
         headers = {"Accept": "application/json"}
@@ -121,7 +121,7 @@ class Server:
                     raise Exception(response.text)
             except json.JSONDecodeError:
                 if response.text.find("Incorrect user name or password") != -1:
-                    raise Exception(f"Incorrect user name or password ({self.productopener_username}/{self.productopener_password})")
+                    raise Exception(f"Incorrect user name or password ({self.productopener_username}/{self.productopener_password[:2]}...)")
                 else:
                     raise Exception("Response not valid JSON!")
         else:
