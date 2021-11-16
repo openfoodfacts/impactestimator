@@ -9,6 +9,7 @@ import re
 import urllib
 import threading
 import multiprocessing
+import numpy as np
                     
 
 class Server:
@@ -28,7 +29,7 @@ class Server:
         self.auth = None
         if productopener_basic_auth_username != "" and productopener_basic_auth_password != "":
             self.auth = requests.auth.HTTPBasicAuth(productopener_basic_auth_username, productopener_basic_auth_password)
-        self.estimation_version = 3
+        self.estimation_version = 4
         self.impact_categories = ["EF single score",
                                   "Climate change"]
         self.stats = {
@@ -190,7 +191,16 @@ class Server:
                     try:
                         impact = self._estimate_with_deadline(prod)
                         self.logging.info(f"❤️  Computed {impact['impacts_geom_means']}") 
-                        decoration["impact"] = impact
+                        max_confidence_idx = np.argmax(impact['confidence_score_distribution'])
+                        decoration["impact"] = {
+                                "likeliest_recipe": impact['recipes'][max_confidence_idx],
+                                "likeliest_impacts": {
+                                    "Climate change": impact['impact_distributions']['Climate change'][max_confidence_idx],
+                                    "EF single score": impact['impact_distributions']['EF single score'][max_confidence_idx],
+                                },
+                                "ef_single_score_log_stddev": np.std(np.log(impact['impact_distributions']['EF single score'])),
+                                "mass_ratio_uncharacterized": impact['uncharacterized_ingredients_mass_proportion']['impact']
+                        }
                         self.stats["estimate_impacts_success"] += 1
                     except Exception as e:
                         error_desc = f"{e.__class__.__name__}: {e}"
