@@ -2,6 +2,7 @@ version: "3.7"
 services:
   impact:
     image: ghcr.io/openfoodfacts/impactestimator:$TAG
+    restart: always
     environment:
       - PRODUCT_OPENER_URL
       - PRODUCT_OPENER_USERNAME
