@@ -199,7 +199,7 @@ class Server:
                                     "EF single score": impact['impact_distributions']['EF single score'][max_confidence_idx],
                                 },
                                 "ef_single_score_log_stddev": np.std(np.log(impact['impact_distributions']['EF single score'])),
-                                "mass_ratio_uncharacterized": impact['uncharacterized_ingredients_mass_proportion']['impact']
+                                "mass_ratio_uncharacterized": impact['uncharacterized_ingredients_mass_proportion']['impact'],
                                 "uncharacterized_ingredients": impact['uncharacterized_ingredients'],
                                 "uncharacterized_ingredients_mass_proportion": impact['uncharacterized_ingredients_mass_proportion'],
                                 "uncharacterized_ingredients_ratio": impact['uncharacterized_ingredients_ratio'],
