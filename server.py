@@ -182,46 +182,50 @@ class Server:
         try:
             self.logging.info("run_update_loop()")
             while self.stats["status"] == "on":
-                products = self._get_products()
-                self.logging.info(f"❤️  Found {len(products)} products to decorate")
-                for prod in products:
-                    self.stats["seen"] += 1
-                    self.logging.info(f"Looking at {self._prod_desc(prod)}")
-                    decoration = {}
-                    try:
-                        impact = self._estimate_with_deadline(prod)
-                        self.logging.info(f"❤️  Computed {impact['impacts_geom_means']}") 
-                        max_confidence_idx = np.argmax(impact['confidence_score_distribution'])
-                        decoration["impact"] = {
-                                "likeliest_recipe": impact['recipes'][max_confidence_idx],
-                                "likeliest_impacts": {
-                                    "Climate change": impact['impact_distributions']['Climate change'][max_confidence_idx],
-                                    "EF single score": impact['impact_distributions']['EF single score'][max_confidence_idx],
-                                },
-                                "ef_single_score_log_stddev": np.std(np.log(impact['impact_distributions']['EF single score'])),
-                                "mass_ratio_uncharacterized": impact['uncharacterized_ingredients_mass_proportion']['impact'],
-                                "uncharacterized_ingredients": impact['uncharacterized_ingredients'],
-                                "uncharacterized_ingredients_mass_proportion": impact['uncharacterized_ingredients_mass_proportion'],
-                                "uncharacterized_ingredients_ratio": impact['uncharacterized_ingredients_ratio'],
-                                "warnings": impact['warnings'],
-                        }
-                        self.stats["estimate_impacts_success"] += 1
-                    except Exception as e:
-                        error_desc = f"{e.__class__.__name__}: {e}"
-                        self.logging.info(f"💀 get_impact([{self._prod_desc(prod)}]): {error_desc}")
-                        decoration["error"] = error_desc
-                        self.stats["estimate_impacts_failure"] += 1
-                        self._add_error(error_desc)
-                    try:
-                        self._update_product(prod, decoration)
-                        self.logging.info(f"❤️  Stored decoration for {self._prod_desc(prod)}")
-                        self.stats["update_extended_data_success"] += 1
-                    except Exception as e:
-                        error_desc = f"{e.__class__.__name__}: {e}"
-                        self.logging.info(f"💀 update_product(...): {error_desc}")
-                        self.stats["update_extended_data_failure"] += 1
-                        self._add_error(error_desc)
-                time.sleep(30)
+                try:
+                    products = self._get_products()
+                    self.logging.info(f"❤️  Found {len(products)} products to decorate")
+                    for prod in products:
+                        self.stats["seen"] += 1
+                        self.logging.info(f"Looking at {self._prod_desc(prod)}")
+                        decoration = {}
+                        try:
+                            impact = self._estimate_with_deadline(prod)
+                            self.logging.info(f"❤️  Computed {impact['impacts_geom_means']}") 
+                            max_confidence_idx = np.argmax(impact['confidence_score_distribution'])
+                            decoration["impact"] = {
+                                    "likeliest_recipe": impact['recipes'][max_confidence_idx],
+                                    "likeliest_impacts": {
+                                        "Climate change": impact['impact_distributions']['Climate change'][max_confidence_idx],
+                                        "EF single score": impact['impact_distributions']['EF single score'][max_confidence_idx],
+                                    },
+                                    "ef_single_score_log_stddev": np.std(np.log(impact['impact_distributions']['EF single score'])),
+                                    "mass_ratio_uncharacterized": impact['uncharacterized_ingredients_mass_proportion']['impact'],
+                                    "uncharacterized_ingredients": impact['uncharacterized_ingredients'],
+                                    "uncharacterized_ingredients_mass_proportion": impact['uncharacterized_ingredients_mass_proportion'],
+                                    "uncharacterized_ingredients_ratio": impact['uncharacterized_ingredients_ratio'],
+                                    "warnings": impact['warnings'],
+                            }
+                            self.stats["estimate_impacts_success"] += 1
+                        except Exception as e:
+                            error_desc = f"{e.__class__.__name__}: {e}"
+                            self.logging.info(f"💀 get_impact([{self._prod_desc(prod)}]): {error_desc}")
+                            decoration["error"] = error_desc
+                            self.stats["estimate_impacts_failure"] += 1
+                            self._add_error(error_desc)
+                        try:
+                            self._update_product(prod, decoration)
+                            self.logging.info(f"❤️  Stored decoration for {self._prod_desc(prod)}")
+                            self.stats["update_extended_data_success"] += 1
+                        except Exception as e:
+                            error_desc = f"{e.__class__.__name__}: {e}"
+                            self.logging.info(f"💀 update_product(...): {error_desc}")
+                            self.stats["update_extended_data_failure"] += 1
+                            self._add_error(error_desc)
+                    time.sleep(30)
+            except Exception as e:
+                self.logging.info(f"💀 update loop got error: {e}\nSleeping a few minutes and retrying.")
+                time.sleep(600)
         except Exception as e:
             self.logging.info(f"💀 update loop terminates: {e}")
         finally:
