@@ -160,6 +160,7 @@ class Server:
         p = multiprocessing.Process(target=self._estimate_outside_process, args=(product, q))
         try:
             p.start()
+            self.logging.info(f"🍴 Forked {p.pid} to compute estimation")
             p.join(deadline)
             if p.is_alive():
                 raise Exception(f"estimation process timed out after {deadline} seconds")
