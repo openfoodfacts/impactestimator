@@ -164,7 +164,7 @@ class Server:
             p.start()
             self.logging.info(f"🍴 Forked {p.pid} to compute estimation")
             try:
-                results = q.get(block=True, deadline)
+                results = q.get(block=True, timeout=deadline)
                 if results[1]:
                     raise Exception(f"estimation process got exception: {results[1]}")
                 return results[0]
