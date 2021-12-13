@@ -1,5 +1,3 @@
-from impacts_estimation.impacts_estimation import estimate_impacts
-
 import requests
 import logging
 import sys
@@ -9,8 +7,10 @@ import re
 import urllib
 import threading
 import multiprocessing
+import queue
 import numpy as np
                     
+ctx = multiprocessing.get_context("forkserver")
 
 class Server:
     def __init__(self,
@@ -142,6 +142,7 @@ class Server:
         through the provided queue. The queue must get a tuple of (result, exception-string)
         when this function terminates."""
         try:
+            from impacts_estimation.impacts_estimation import estimate_impacts
             impact = estimate_impacts(
                     ignore_unknown_ingredients=False,
                     product=product,
@@ -156,26 +157,25 @@ class Server:
         it a queue to return a (result, exception-string) through.
         The process can time out, and the queue can be empty - both need to provide
         exceptions in addition to anything received via the queue."""
-        q = multiprocessing.Queue(1)
-        p = multiprocessing.Process(target=self._estimate_outside_process, args=(product, q))
+        q = ctx.Queue(1)
+        p = ctx.Process(target=self._estimate_outside_process, args=(product, q))
+        results = (None, "no results yet")
         try:
             p.start()
             self.logging.info(f"🍴 Forked {p.pid} to compute estimation")
-            p.join(deadline)
-            if p.is_alive():
+            try:
+                results = q.get(block=True, deadline)
+                if results[1]:
+                    raise Exception(f"estimation process got exception: {results[1]}")
+                return results[0]
+            except queue.Empty:
                 raise Exception(f"estimation process timed out after {deadline} seconds")
+            except Exception as e:
+                raise Exception(f"estimation queue read: {e.__class__.__name__}: {e}")
         finally:
             p.kill()
             p.join()
             p.close()
-        results = (None, "no results yet")
-        try:
-            results = q.get(block=False)
-        except Exception as e:
-            raise Exception(f"estimation queue read: {e.__class__.__name__}: {e}")
-        if results[1]:
-            raise Exception(f"estimation process got exception: {results[1]}")
-        return results[0]
 
 
     def _run_update_loop(self):
