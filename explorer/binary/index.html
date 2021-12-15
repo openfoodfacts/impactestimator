@@ -1,0 +1,363 @@
+<html>
+	<head>
+		<style>
+			th {
+				text-align: left;
+			}
+			td {
+				vertical-align: top;
+			}
+			.tooltip {
+				border: 1px solid black;
+				padding: 0px 5px 0px 5px;
+				border-radius: 11px;
+				position: relative;
+			}
+			.tooltip .content {
+				width: 500px;
+				display: none;
+				text-align: center;
+				border-radius: 6px;
+				border: 1px solid black;
+				background-color: white;
+				padding: 5px;
+
+				/* Position the tooltip */
+				position: absolute;
+				z-index: 1;
+			}
+			.tooltip .content-left {
+				left: -500px;
+			}
+			.tooltip:hover .content {
+				display: inline;
+			}
+		</style>
+		<script>
+			var knownCodes = {};
+
+			function estimatorError(
+				mass_ratio_uncharacterized,
+				impact_standard_deviation
+			) {
+				const params = [
+					0.16590362, 0.2232487, 0.04409559, -0.01290882, 0.44781467,
+					-0.0699337, -0.37201226, 0.1213749, -0.09568282, 0.06472759,
+				];
+				return (
+					params[0] +
+					params[1] * mass_ratio_uncharacterized +
+					params[2] * impact_standard_deviation +
+					params[3] *
+						mass_ratio_uncharacterized *
+						impact_standard_deviation +
+					params[4] *
+						mass_ratio_uncharacterized *
+						mass_ratio_uncharacterized +
+					params[5] *
+						impact_standard_deviation *
+						impact_standard_deviation +
+					params[6] *
+						mass_ratio_uncharacterized *
+						mass_ratio_uncharacterized *
+						mass_ratio_uncharacterized +
+					params[7] *
+						mass_ratio_uncharacterized *
+						mass_ratio_uncharacterized *
+						impact_standard_deviation +
+					params[8] *
+						mass_ratio_uncharacterized *
+						impact_standard_deviation *
+						impact_standard_deviation +
+					params[9] *
+						impact_standard_deviation *
+						impact_standard_deviation *
+						impact_standard_deviation
+				);
+			}
+
+			function cmp(a, b) {
+				if (a > b) {
+					return 1;
+				} else if (b > a) {
+					return -1;
+				}
+				return 0;
+			}
+
+			function sortedKeys(m, { increasing = true } = {}) {
+				if (increasing) {
+					return Object.keys(m).sort((a, b) => {
+						return cmp(m[a], m[b]);
+					});
+				} else {
+					return Object.keys(m).sort((b, a) => {
+						return cmp(m[a], m[b]);
+					});
+				}
+			}
+
+			function jsonReq(method, url, { body = null } = {}) {
+				return new Promise((res, rej) => {
+					const req = new XMLHttpRequest();
+					req.addEventListener("load", () => {
+						res(JSON.parse(req.responseText));
+					});
+					req.open(method, url);
+					req.send(body);
+				});
+			}
+
+			function loadPage(num) {
+				document.getElementById("results").innerHTML =
+					"<h1>Loading...</h1>";
+				jsonReq(
+					"GET",
+					"https://world.openfoodfacts.org/misc/ecoscore-extended-data-version-4&no_cache=1&json=1&page_size=20&page=" +
+						num
+				).then((js) => {
+					window.history.pushState(
+						"",
+						"",
+						new URL(`/?page=${num}`, window.location.href)
+					);
+					var listIndex = 0;
+					const count = Number.parseInt(js["count"]);
+					const page = Number.parseInt(js["page"]);
+					const skip = Number.parseInt(js["skip"]);
+					document.getElementById("results").innerHTML = `
+			<table style="width: 100%;">
+			<caption>
+			Page ${page}/${Math.ceil(count / 20)} (${count} products)
+			</caption>
+			<thead>
+			<tr>
+			<th>Product name</th>
+			<th>Barcode <span class="tooltip">?<div class="content content-left">The barcode in the productopener database.</div></span></th>
+			<th>CIQUAL code <span class="tooltip">?<div class="content content-left">The CIQUAL code in the productopener database, and in the AgriBalyse and CIQUAL datasets. Green color means this tool has access to a detailed AgriBalyse proxy product ingredient list, red color means the AgriBalyse proxy product ingredints aren't known with percentages, but the ingredients themselves may be known.</div></span></th>
+			<th>AgriBalyse proxy impact <span class="tooltip">?<div class="content content-left">EF impact score for 1kg of the AgriBalyse proxy product.</div></span></th>
+			<th>Estimated impact <span class="tooltip">?<div class="content content-left">EF impact score for 1kg of the product according to the impactestimator.</div></span></th>
+			<th>Mass ratio uncharacterized ingredients <span class="tooltip">?<div class="content content-left">Ratio of uncharacterized ingredients - update the product to fix this.</div></span></th>
+			<th>Delta/estimated impact <span class="tooltip">?<div class="content content-left">Difference between proxy product and estimated scores. -0.5 means proxy product has %50 of the estimated impact, 0.5 means proxy product has 50% more impact that estimated.</div></span></th>
+			</tr>
+			</thead>
+			${js["products"]
+				.map((prod) => {
+					const agribalyse =
+						prod["ecoscore_data"]["agribalyse"] || {};
+					const estimator = prod["ecoscore_extended_data"] || {};
+					const res = `
+			<tr>
+			<td>
+			  <button id="button${listIndex}">${
+						prod["product_name"] == ""
+							? "[unknown]"
+							: prod["product_name"]
+					}</button>
+			</td>
+			<td><a href="https://world.openfoodfacts.org/cgi/product.pl?type=edit&code=${prod["_id"]}">${prod["_id"]}</a></td>
+			<td style="background-color: ${
+				knownCodes[agribalyse["code"]] ? "green" : "red"
+			}">${agribalyse["code"]}</td>
+			<td>${agribalyse["ef_agriculture"]}</td>
+			<td>${
+				estimator["impact"]
+					? 10 *
+					  estimator["impact"]["likeliest_impacts"][
+							"EF_single_score"
+					  ]
+					: estimator["error"]
+			}</td>
+			<td>${estimator["impact"] ? estimator["impact"]["mass_ratio_uncharacterized"].toFixed(2) : ''}</td>
+			<td>${
+				estimator["impact"]
+					? (agribalyse["ef_agriculture"] -
+							10 *
+								estimator["impact"]["likeliest_impacts"][
+									"EF_single_score"
+								]) /
+					  (10 *
+							estimator["impact"]["likeliest_impacts"][
+								"EF_single_score"
+							])
+					: ""
+			}</td>
+			</tr>
+			<tr id="expander${listIndex}" style="display: none;">
+			<td colspan="7" id="content${listIndex}" style="padding: 1em;">
+			</td>
+			</tr>
+				`;
+					listIndex++;
+					return res;
+				})
+				.join("")}
+			<tfoot>
+			<tr>
+			<th>${
+				page > 1
+					? `<button onClick="loadPage(${page - 1})">&lt;</button>`
+					: ""
+			}</th>
+			<th colspan="5"></th>
+			<th>${
+				skip < count
+					? `<button onClick="loadPage(${page + 1})">&gt;</button>`
+					: ""
+			}</th>
+			</tr>
+			</tfoot>
+			</table>
+			`;
+					for (let idx = 0; idx < listIndex; idx++) {
+						document
+							.getElementById(`button${idx}`)
+							.addEventListener("click", (ev) => {
+								const expander = document.getElementById(
+									`expander${idx}`
+								);
+								if (expander.style.display == "none") {
+									expander.style.removeProperty("display");
+								} else {
+									expander.style.display = "none";
+								}
+								if (expander.style.display != "none") {
+									const content = document.getElementById(
+										`content${idx}`
+									);
+									content.innerText = "Loading...";
+									const prod = js["products"][idx];
+									const req = {};
+									const agribalyse =
+										prod["ecoscore_data"]["agribalyse"];
+									if (agribalyse && agribalyse["code"]) {
+										req["CIQUALCode"] = agribalyse["code"];
+									}
+									const impact =
+										prod["ecoscore_extended_data"][
+											"impact"
+										];
+									if (impact && impact["likeliest_recipe"]) {
+										req["Ingredients"] = Object.keys(
+											impact["likeliest_recipe"]
+										).map((id) => {
+											return id.replaceAll("_", "-");
+										});
+									}
+									jsonReq(
+										"POST",
+										new URL(
+											"/metadata",
+											window.location.href
+										),
+										{
+											body: JSON.stringify(req),
+										}
+									).then((js) => {
+										content.innerHTML = `
+										${
+											impact
+												? `
+			<dl>
+			<dt>Mass ratio uncharacterized ingredients</td>
+			<dd>${impact["mass_ratio_uncharacterized"]}</dd>
+			<dt>Estimated impact standard deviation<dt>
+			<dd>${impact["ef_single_score_log_stddev"]}</dd>
+			<dt>95% confidence 95th percentile error of estimation</dt>
+			<dd>${estimatorError(
+				impact["mass_ratio_uncharacterized"],
+				impact["ef_single_score_log_stddev"]
+			)}</dd>
+												</dl>`
+												: ""
+										}
+			<table style="display: inline; margin: 1em; width: 40%;">
+											<caption>AgriBalyse data for "${js["ProductName"]}" ${
+											agribalyse && agribalyse["code"] && !knownCodes[agribalyse["code"]] &&
+											(js["Ingredients"] || []).length > 0
+												? `<span class="tooltip">?<div class="content">We don't have access to the individual ingredient percentages for this product, but we have the list of ingredients and their individual EF impact.</div></span>`
+												: ""
+										}</caption>
+			<tr>
+			<th>Ingredient</th>
+			<th>Percent</th>
+			<th>Impact per kg</th>
+			<th>Impact * percent</th>
+			</tr>
+			${
+				js["Ingredients"]
+					? `
+				${js["Ingredients"]
+					.map((ingred) => {
+						const id = Object.keys(ingred)[0];
+						return `<tr><td>${id}</td><td>${(
+							ingred[id] || 0
+						).toFixed(2)}</td><td>${(
+							js["ImpactByIngredient"][id] || 0
+						).toFixed(4)}</td><td>${(
+							(ingred[id] || 0) *
+							(js["ImpactByIngredient"][id] || 0)
+						).toFixed(4)}</td></tr>`;
+					})
+					.join("")}
+			`
+					: `<tr><td colspan="4">Unknown</td></tr>`
+			}
+			</table>
+			<table style="display: inline; margin: 1em; width: 40%;">
+			<caption>Estimator data for "${prod["ingredients_text"]}"</caption>
+			<tr>
+			<th>Ingredient</th>
+			<th>Percent</th>
+			<th>Impact per kg</th>
+			<th>Impact * percent</th>
+			</tr>
+			${
+				impact && impact["likeliest_recipe"]
+					? `
+				${sortedKeys(impact["likeliest_recipe"], { increasing: false })
+					.map((id) => {
+						canonicalizedID = id.replaceAll("_", "-");
+						return `<tr><td>${id}</td><td>${(
+							impact["likeliest_recipe"][id] || 0
+						).toFixed(2)}</td><td>${(
+							js["ImpactByIngredient"][canonicalizedID] || 0
+						).toFixed(4)}</td><td>${(
+							(impact["likeliest_recipe"][id] || 0) *
+							(js["ImpactByIngredient"][canonicalizedID] || 0)
+						).toFixed(4)}</td></tr>`;
+					})
+					.join("")}
+			`
+					: `<tr><td colspan="4">Unknown</td></tr>`
+			}
+			</table>
+							 `;
+									});
+								}
+							});
+					}
+				});
+			}
+		</script>
+	</head>
+	<body>
+		<div id="results">
+			<h1>Loading...</h1>
+		</div>
+		<script>
+			jsonReq("GET", new URL("/codes", window.location.href)).then(
+				(js) => {
+					knownCodes = js;
+					loadPage(
+						Number.parseInt(
+							new URL(window.location.href).searchParams.get(
+								"page"
+							) || "1"
+						)
+					);
+				}
+			);
+		</script>
+	</body>
+</html>
