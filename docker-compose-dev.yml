@@ -10,7 +10,9 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        restart: no
+            args:
+                IMPACT_LIB_REF: ${IMPACT_LIB_REF:-refs/heads/master}
+        restart: "no"
         networks:
             - po_default
         volumes:

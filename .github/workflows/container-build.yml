@@ -41,7 +41,8 @@ jobs:
                       type=ref,event=pr
                       type=ref,event=branch
                       type=sha,format=long
-
+            # TODO: we currently IMPACT_LIB_REF to its default value which is refs/heads/master
+            # we should normally fix a version
             - name: Build and push
               uses: docker/build-push-action@v2
               with:
