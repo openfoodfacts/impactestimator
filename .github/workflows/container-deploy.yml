@@ -13,12 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env:
-          - ${{ startsWith(github.ref, 'refs/tags/v') && 'impactestimator-org' || 'impactestimator-net' }}
-        compose_project_name:
+        # Note: versions are deployed to prod, while branches are deployed to preprod
+        # hence the use of startsWith(github.ref, 'refs/tags/v')
+          compose_project_name:
           - ${{ startsWith(github.ref, 'refs/tags/v') && 'ie_org' || 'ie_net' }}
-        docker_cpus:
+          docker_cpus:
           - ${{ startsWith(github.ref, 'refs/tags/v') && '2.0' || '0.25' }}
+          env:
+          - ${{ startsWith(github.ref, 'refs/tags/v') && "" || "" }}
+          explorer_port:
+          - ${{ startsWith(github.ref, 'refs/tags/v') && "8042" || "8043" }}
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
@@ -78,6 +82,7 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
+            ## Estimator
             # Go to repository directory
             cd ${{ matrix.env }}
 
@@ -100,19 +105,20 @@ jobs:
             echo "PRODUCT_OPENER_HOST_HEADER=${{ secrets.PRODUCT_OPENER_HOST_HEADER }}" >> .env
             echo "MONITORING_PORT=${{ secrets.MONITORING_PORT }}" >> .env
 
-      # - name: Create external Docker volumes
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.HOST }}
-      #     username: ${{ secrets.USERNAME }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     proxy_host: ${{ secrets.PROXY_HOST }}
-      #     proxy_username: ${{ secrets.USERNAME }}
-      #     proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script_stop: false
-      #     script: |
-      #       cd ${{ matrix.env }}/
-      #       docker volume create <VOLUME_NAME>
+            ## Explorer
+            # Go to repository directory
+            cd && cd ${{ matrix.env }}/explorer
+
+            # Set Docker Compose variables
+            echo > .env
+            echo "DOCKER_CLIENT_TIMEOUT=120" >> .env
+            echo "COMPOSE_HTTP_TIMEOUT=120" >> .env
+            echo "COMPOSE_PROJECT_NAME=${{ matrix.compose_project_name  }}_explorer" >> .env
+            echo "TAG=sha-${{ github.sha }}" >> .env
+
+            # App environment variables
+            # expose globaly on 8042
+            echo "EXPOSE={{ matrix.explorer_port }}" >> .env
 
       - name: Start services
         uses: appleboy/ssh-action@master
@@ -125,8 +131,12 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
+            # Estimator
             cd ${{ matrix.env }}
             make up
+            # Explorer
+            cd && cd ${{ matrix.env }}/explorer
+            docker-compose up -d
 
       - name: Check services are up
         uses: appleboy/ssh-action@master
@@ -140,8 +150,12 @@ jobs:
           proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: false
           script: |
+            # Estimator
             cd ${{ matrix.env }}
             make livecheck
+            # Explorer
+            cd && cd ${{ matrix.env }}/explorer
+            docker-compose ps --filter Status=Up explorer|grep explorer
 
       - name: Cleanup obsolete Docker objects
         uses: appleboy/ssh-action@master

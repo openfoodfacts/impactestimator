@@ -3,7 +3,8 @@
 
 services:
   explorer:
-    build: .
+    restart: always
+    image: ghcr.io/openfoodfacts/impactestimator/explorer:$TAG
     ports:
       - ${EXPOSE:-127.0.0.1:8080}:8080
     volumes:
