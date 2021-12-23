@@ -118,7 +118,7 @@ jobs:
 
             # App environment variables
             # expose globaly on 8042
-            echo "EXPOSE={{ matrix.explorer_port }}" >> .env
+            echo "EXPOSE=${{ matrix.explorer_port }}" >> .env
 
       - name: Start services
         uses: appleboy/ssh-action@master
