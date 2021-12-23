@@ -13,12 +13,12 @@ jobs:
     build:
         runs-on: ubuntu-latest
         strategy:
-            # estimator
-            name:
-            - estimator
-            path:
-            - "."
             matrix:
+                # impact estimator
+                name: 
+                - estimator
+                path: 
+                - "."
                 include:
                 # explorer
                 - name: explorer
