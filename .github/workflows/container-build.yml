@@ -63,7 +63,7 @@ jobs:
               with:
                   context: ${{ matrix.path }}
                   push: true
-                  file: Dockerfile
+                  file: ${{ matrix.path }}/Dockerfile
                   cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.name }}:buildcache
                   cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.name }}:buildcache,mode=max
                   tags: ${{ steps.meta.outputs.tags }}
