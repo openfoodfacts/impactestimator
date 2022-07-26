@@ -2,11 +2,15 @@ name: Docker Compose Deployment CI
 
 on:
   push:
-    branches:
-      - main
-      - deploy-*
-    tags:
-      - v*.*.*
+    # Impact estimator deployment is DISABLED for now
+    # because it causes a lot of updates, for too few added value
+    branches-ignore:
+      - '**'
+    # branches:
+    #   - main
+    #   - deploy-*
+    # tags:
+    #   - v*.*.*
 
 jobs:
   deploy:
