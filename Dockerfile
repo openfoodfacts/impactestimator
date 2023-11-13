@@ -1,4 +1,4 @@
-FROM scipoptsuite/scipoptsuite:7.0.2
+FROM scipoptsuite/scipoptsuite:8.0.4
 
 # commit hash or refs/heads/master or refs/tags/v0.0.1 ...
 ARG IMPACT_LIB_REF=refs/heads/master
