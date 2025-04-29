@@ -1,7 +1,10 @@
 [![Test](https://github.com/openfoodfacts/impactestimator/actions/workflows/test.yml/badge.svg)](https://github.com/openfoodfacts/impactestimator/actions/workflows/test.yml)
 
 # impactestimator
-Service providing product level Eco-Score for OFF products.
+Experimental service providing product level environmental impact for Open Food Facts products.
+
+> [!WARNING]  
+> This is paused, and we're now looking at Ecobalyse integration.
 
 Crawls through productopener products with ingredients and nutrient tables to ensure they all have
 computations provided by https://github.com/openfoodfacts/off-product-environmental-impact.
