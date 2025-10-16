@@ -143,7 +143,7 @@ jobs:
       # note: normally we should not need this, as image is public,
       # but their seems to be a latency between image being pushed and being public
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
             registry: ghcr.io
             username: ${{ github.actor }}
